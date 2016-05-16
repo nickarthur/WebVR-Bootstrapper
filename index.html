@@ -5,16 +5,19 @@
     <title></title>
     <script type="text/javascript" src="WebVRBootstrapper.min.js"></script>
     <script>
+        var b = null;
         WebVRBootstrapper( "manifest.json", function ( obj ) {
             document.querySelector( "h1" ).innerHTML = "All done";
         }, function ( n, m ) {
-            document.querySelector( "#pBytes" ).value = n / m;
+            b = b || document.querySelector( "#pBytes" );
+            b.max = m;
+            b.value = n;
         } );
     </script>
 </head>
 <body>
     <h1>Loading...</h1>
-    <div><progress id="pBytes"></progress></div>
+    <div><progress id="pBytes" style="width:100%"></progress></div>
     <canvas></canvas>
 </body>
 </html>

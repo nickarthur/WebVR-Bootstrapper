@@ -62,9 +62,7 @@
 
       document.removeEventListener("readystatechange", setup);
 
-      loadFiles(manifest, done, function (i, n, l, t) {
-        progress(i / n, l / t);
-      });
+      loadFiles(manifest, done, progress);
     }
     return ready;
   }

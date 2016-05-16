@@ -29,10 +29,7 @@
         }
 
         _loadFiles(files, done, progress, index + 1, state, total, loaded);
-      }, (evt) => {
-        loaded = lastLoaded + evt.loaded;
-        progress(index + 1, files.length, loaded, total);
-      });
+      }, (evt) => progress(loaded = lastLoaded + evt.loaded, total));
     }
     else {
       done(state);

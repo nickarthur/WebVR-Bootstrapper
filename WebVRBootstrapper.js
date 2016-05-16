@@ -431,8 +431,7 @@ var loadFiles = function () {
 
         _loadFiles(files, done, progress, index + 1, state, total, loaded);
       }, function (evt) {
-        loaded = lastLoaded + evt.loaded;
-        progress(index + 1, files.length, loaded, total);
+        return progress(loaded = lastLoaded + evt.loaded, total);
       });
     } else {
       done(state);
@@ -534,9 +533,7 @@ function WebVRBootstrapper(manifest, done, progress) {
 
       document.removeEventListener("readystatechange", setup);
 
-      loadFiles(manifest, done, function (i, n, l, t) {
-        progress(i / n, l / t);
-      });
+      loadFiles(manifest, done, progress);
     }
     return ready;
   }

@@ -7,15 +7,13 @@
     <script>
         WebVRBootstrapper( "manifest.json", function ( obj ) {
             document.querySelector( "h1" ).innerHTML = "All done";
-        }, function ( pCount, pBytes ) {
-            document.querySelector( "#pCount" ).value = pCount;
-            document.querySelector( "#pBytes" ).value = pBytes;
+        }, function ( n, m ) {
+            document.querySelector( "#pBytes" ).value = n / m;
         } );
     </script>
 </head>
 <body>
     <h1>Loading...</h1>
-    <div><progress id="pCount"></progress></div>
     <div><progress id="pBytes"></progress></div>
     <canvas></canvas>
 </body>

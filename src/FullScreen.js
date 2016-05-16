@@ -1,11 +1,18 @@
 ﻿var FullScreen = (function () {
   "use strict";
-
-  var elementName = findProperty(document, ["fullscreenElement", "mozFullScreenElement", "webkitFullscreenElement", "msFullscreenElement"]),
-    changeEventName = findProperty(document, ["onfullscreenchange", "onmozfullscreenchange", "onwebkitfullscreenchange", "onmsfullscreenchange"]),
-    errorEventName = findProperty(document, ["onfullscreenerror", "onmozfullscreenerror", "onwebkitfullscreenerror", "onmsfullscreenerror"]),
-    requestMethodName = findProperty(document.documentElement, ["requestFullscreen", "mozRequestFullScreen", "webkitRequestFullscreen", "webkitRequestFullScreen", "msRequestFullscreen"]),
-    exitMethodName = findProperty(document, ["exitFullscreen", "mozExitFullScreen", "webkitExitFullscreen", "webkitExitFullScreen", "msExitFullscreen"]);
+  function findProperty(elem, arr, pre, post) {
+    for (var i = 0; i < arr.length; ++i) {
+      var name = pre + arr[i] + post;
+      if (elem[name] !== undefined) {
+        return name;
+      }
+    }
+  }
+  var elementName = findProperty(document, ["fulls", "mozFullS", "webkitFulls", "msFulls"], "", "creenElement"),
+    changeEventName = findProperty(document, ["", "moz", "webkit", "ms"], "on", "fullscreenchange"),
+    errorEventName = findProperty(document, ["", "moz", "webkit", "ms"], "on", "fullscreenerror"),
+    requestMethodName = findProperty(document.documentElement, ["requestFulls", "mozRequestFullS", "webkitRequestFulls", "webkitRequestFullS", "msRequestFulls"], "", "creen"),
+    exitMethodName = findProperty(document, ["exitFulls", "mozExitFullS", "webkitExitFulls", "webkitExitFullS", "msExitFulls"], "", "creen");
 
   changeEventName = changeEventName && changeEventName.substring(2);
   errorEventName = errorEventName && errorEventName.substring(2);
@@ -46,8 +53,8 @@
           tearDown();
           resolve(FullScreen.element);
         }
-        else {      
-          // Timeout wating on the fullscreen to happen, for systems like iOS that
+        else {
+          // Timeout waiting on the fullscreen to happen, for systems like iOS that
           // don't properly support it, even though they say they do.
           timeout = setTimeout(() => {
             tearDown();
@@ -59,7 +66,6 @@
     request: (elem, fullScreenParam) => {
       return FullScreen.withChange(() => {
         if (!requestMethodName) {
-          console.error("No Fullscreen API support.");
           throw new Error("No Fullscreen API support.");
         }
         else if (FullScreen.isActive) {
@@ -78,7 +84,6 @@
     exit: () => {
       return FullScreen.withChange(() => {
         if (!exitMethodName) {
-          console.error("No Fullscreen API support.");
           throw new Error("No Fullscreen API support.");
         }
         else if (!FullScreen.isActive) {
@@ -93,7 +98,7 @@
 
   Object.defineProperties(ns, {
     element: {
-      get: ()=> document[elementName]
+      get: () => document[elementName]
     },
     isActive: {
       get: () => !!FullScreen.element

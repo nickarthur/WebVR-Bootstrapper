@@ -1,4 +1,4 @@
-﻿function WebVRBootstrapper(manifest) {
+﻿function WebVRBootstrapper(manifest, done, progress) {
   "use strict";
   function setup() {
     let ready = false;
@@ -61,15 +61,18 @@
       }
 
       document.removeEventListener("readystatechange", setup);
-      return false;
-    }
 
-    return true;
+      loadFiles(manifest, done, function (i, n, l, t) {
+        progress(i / n, l / t);
+      });
+    }
+    return ready;
   }
-  if (setup()) {
+  if (!setup()) {
     document.addEventListener("readystatechange", setup);
   }
 }
+
 WebVRBootstrapper.Version = (function () {
   if (navigator.getVRDisplays) {
     return 1.0;
@@ -87,3 +90,5 @@ WebVRBootstrapper.Version = (function () {
     return 0;
   }
 })();
+
+WebVRBootstrapper();

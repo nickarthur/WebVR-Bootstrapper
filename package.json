@@ -21,6 +21,9 @@
     "WebVR-Bootstrapper.min.js",
     "src/"
   ],
+  "scripts": {
+    "manifest": "node index.js -- --out manifest.json --directory test"
+  },
   "keywords": [
     "virtual reality",
     "VR",

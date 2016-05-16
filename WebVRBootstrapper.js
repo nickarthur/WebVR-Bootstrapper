@@ -402,15 +402,6 @@ function LegacyVRDisplayPolyfill(legacyDisplay, legacySensor) {
 var loadFiles = function () {
   "use strict";
 
-  function appendScript(content) {
-    if (/\.js$/.test(path)) {
-      var s = document.createElement("script");
-      s.type = "text/javascript";
-      s.appendChild(document.createTextNode(content));
-      document.head.appendChild(s);
-    }
-  }
-
   function get(url, done, progress) {
     var req = new XMLHttpRequest();
     req.onload = function () {
@@ -420,38 +411,29 @@ var loadFiles = function () {
     };
 
     req.open("GET", url);
-    req.onprogress = progres;
+    req.onprogress = progress;
     req.send();
   }
 
   function _loadFiles(files, done, progress, index, state, total, loaded) {
-    function copy(proc, content) {
-      var obj = proc(content);
-      if (obj !== null && obj !== undefined) {
-        for (var key in obj) {
-          state[key] = obj[key];
-        }
-      }
-      _loadFiles(files, done, progress, index + 1, state);
-    }
     if (index < files.length) {
-      var file = files[index],
-          path = file[0],
-          size = file[1],
-          hash = file[2],
-          proc = file[3] || appendScript,
-          src = localStorage.getItem(hash);
-      if (src) {
-        setTimeout(copy, 0, proc, src);
-      } else {
-        get(path, function (txt) {
-          localStorage.setItem(hash, txt);
-          copy(proc, txt);
-        }, function (evt) {
-          loaded += evt.loaded;
-          progress(index, files.length, loaded, total);
-        });
-      }
+      var file = files[index][0],
+          size = files[index][1],
+          ext = file.match(/\.\w+$/)[0] || "none",
+          lastLoaded = loaded;
+      get(file, function (content) {
+        if (ext === ".js") {
+          var s = document.createElement("script");
+          s.type = "text/javascript";
+          s.appendChild(document.createTextNode(content));
+          document.head.appendChild(s);
+        }
+
+        _loadFiles(files, done, progress, index + 1, state, total, loaded);
+      }, function (evt) {
+        loaded = lastLoaded + evt.loaded;
+        progress(index + 1, files.length, loaded, total);
+      });
     } else {
       done(state);
     }
@@ -459,16 +441,10 @@ var loadFiles = function () {
 
   /* syntax:
   loadFiles([
-      // filename,  size,  hash,  [callback]
-      ["script1.js", 456, "98asd070132"],
-      ["script3.js", 8762, "1324gfs2134", function(content){
-          // do something here
-          return {name1: massage(content)};
-      }],
-      ["script2.js", 12368, "0986fg245a", function(content){
-          // do something here
-          return {name2: massage(content)};
-      }]
+      // filename,  size
+      ["script1.js", 456],
+      ["script3.js", 8762],
+      ["script2.js", 12368]
   ], function(objects){
       // the thing to do when done.
       console.assert(objects.name1 !== undefined);
@@ -478,22 +454,28 @@ var loadFiles = function () {
       console.log("loaded file %d of %d, loaded %d bytes of %d bytes total.", n, m, size, total);
   });
   */
-  return function loadFiles(manifestFile, done, progress) {
-    get(manifestFile, function (txt) {
-      var manifest = JSON.parse(txt);
-      var total = 0,
-          files = manifest.files;
-      for (var i = 0; i < files.length; ++i) {
-        total += files[i][1];
+  return function loadFiles(manifestSpec, done, progress) {
+    function readManifest(manifest) {
+      var total = 0;
+      for (var i = 0; i < manifest.length; ++i) {
+        total += manifest[i][1];
       }
       progress = progress || console.log.bind(console, "File load progress");
-      _loadFiles(files, done, progress, 0, {}, total, 0);
-    });
+      _loadFiles(manifest, done, progress, 0, {}, total, 0);
+    }
+
+    if (manifestSpec instanceof String || typeof manifestSpec === "string") {
+      get(manifestSpec, function (manifestText) {
+        readManifest(JSON.parse(manifestText));
+      });
+    } else if (manifestSpec instanceof Array) {
+      readManifest(manifestSpec);
+    }
   };
 }();
 "use strict";
 
-function WebVRBootstrapper(manifest) {
+function WebVRBootstrapper(manifest, done, progress) {
   "use strict";
 
   function setup() {
@@ -551,15 +533,18 @@ function WebVRBootstrapper(manifest) {
       }
 
       document.removeEventListener("readystatechange", setup);
-      return false;
-    }
 
-    return true;
+      loadFiles(manifest, done, function (i, n, l, t) {
+        progress(i / n, l / t);
+      });
+    }
+    return ready;
   }
-  if (setup()) {
+  if (!setup()) {
     document.addEventListener("readystatechange", setup);
   }
 }
+
 WebVRBootstrapper.Version = function () {
   if (navigator.getVRDisplays) {
     return 1.0;
@@ -573,3 +558,5 @@ WebVRBootstrapper.Version = function () {
     return 0;
   }
 }();
+
+WebVRBootstrapper();

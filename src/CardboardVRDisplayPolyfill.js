@@ -5,7 +5,8 @@
 
   var currentPose = null,
     frameID = 0,
-    q = [0, 0, 0, 0],
+    q = new Float32Array([0, 0, 0, 1]),
+    p = new Float32Array([0, 0, 0]),
     c = Math.sqrt(0.5),
     zeroAlpha = 0,
     first = true,

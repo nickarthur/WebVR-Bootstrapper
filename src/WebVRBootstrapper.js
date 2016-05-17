@@ -51,7 +51,7 @@
         navigator.getVRDisplays = Promise.resolve.bind(Promise, [new CardboardVRDisplayPolyfill()]);
       }
       else {
-        navigator.getVRDisplays = Promise.reject.bind(Promise, "Your browser does not support WebVR.");
+        navigator.getVRDisplays = Promise.resolve.bind(Promise, []);
       }
 
       var oldGetVRDisplays = navigator.getVRDisplays;

@@ -1,11 +1,9 @@
 ﻿function WebVRBootstrapper(manifest, done, progress) {
   "use strict";
   function setup() {
-    let ready = false;
     if (document.readyState === "complete") {
       const V = WebVRBootstrapper.Version
       if (V === 1) {
-        ready = true;
         if (isMobile) {
           // fix a defect in mobile Android with WebVR 1.0
           var oldRequestPresent = VRDisplay.prototype.requestPresent;
@@ -15,7 +13,6 @@
         }
       }
       else if (V === 0.5) {
-        ready = true;
         navigator.getVRDisplays = function () {
           return navigator.getVRDevices()
             .then(function (devices) {
@@ -48,15 +45,12 @@
         };
       }
       else if (V === 0.4) {
-        ready = false;
         navigator.getVRDisplays = Promise.reject.bind(Promise, "You're using an extremely old version of Firefox Nightly. Please update your browser.");
       }
       else if (V === 0.1) {
-        ready = true;
         navigator.getVRDisplays = Promise.resolve.bind(Promise, [new CardboardVRDisplayPolyfill()]);
       }
       else {
-        ready = false;
         navigator.getVRDisplays = Promise.reject.bind(Promise, "Your browser does not support WebVR.");
       }
 
@@ -70,8 +64,8 @@
       };
 
       loadFiles(manifest, done, progress);
+      return true;
     }
-    return ready;
   }
   if (!setup()) {
     document.addEventListener("readystatechange", setup);

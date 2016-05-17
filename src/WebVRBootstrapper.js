@@ -1,4 +1,4 @@
-﻿function WebVRBootstrapper(manifest, done, progress) {
+﻿function WebVRBootstrapper(manifest, preLoad) {
   "use strict";
   function setup() {
     if (document.readyState === "complete") {
@@ -54,7 +54,6 @@
         navigator.getVRDisplays = Promise.reject.bind(Promise, "Your browser does not support WebVR.");
       }
 
-      document.removeEventListener("readystatechange", setup);
       var oldGetVRDisplays = navigator.getVRDisplays;
       navigator.getVRDisplays = function () {
         return oldGetVRDisplays.call(navigator).then((displays) => {
@@ -63,7 +62,8 @@
         });
       };
 
-      loadFiles(manifest, done, progress);
+      document.removeEventListener("readystatechange", setup);
+      preLoad(loadFiles.bind(null, manifest));
       return true;
     }
   }
@@ -89,5 +89,3 @@ WebVRBootstrapper.Version = (function () {
     return 0;
   }
 })();
-
-WebVRBootstrapper();

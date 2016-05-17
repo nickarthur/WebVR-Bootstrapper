@@ -67,6 +67,7 @@
     <Compile Include="gulpfile.js" />
     <Compile Include="index.js" />
     <Compile Include="src\AbstractVRDisplayPolyfill.js" />
+    <Compile Include="src\StandardMonitorPolyfill.js" />
     <Compile Include="src\CardboardVRDisplayPolyfill.js" />
     <Compile Include="src\FullScreen.js" />
     <Compile Include="src\LegacyVRDisplayPolyfill.js" />

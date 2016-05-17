@@ -61,6 +61,13 @@
       }
 
       document.removeEventListener("readystatechange", setup);
+      var oldGetVRDisplays = navigator.getVRDisplays;
+      navigator.getVRDisplays = function () {
+        return oldGetVRDisplays.call(navigator).then((displays) => {
+          displays.unshift(new StandardMonitorPolyfill());
+          return displays;
+        });
+      };
 
       loadFiles(manifest, done, progress);
     }

@@ -170,19 +170,21 @@ function CardboardVRDisplayPolyfill() {
   }
 
   this.getEyeParameters = function (side) {
-    var dEye = side === "left" ? -1 : 1;
+    if (side === "left" || side === "right") {
+      var dEye = side === "left" ? -1 : 1;
 
-    return {
-      renderWidth: Math.floor(screen.width * devicePixelRatio / 2),
-      renderHeight: screen.height * devicePixelRatio,
-      offset: new Float32Array([dEye * 0.03, 0, 0]),
-      fieldOfView: {
-        upDegrees: 40,
-        downDegrees: 40,
-        leftDegrees: 40,
-        rightDegrees: 40
-      }
-    };
+      return {
+        renderWidth: Math.floor(screen.width * devicePixelRatio / 2),
+        renderHeight: screen.height * devicePixelRatio,
+        offset: new Float32Array([dEye * 0.03, 0, 0]),
+        fieldOfView: {
+          upDegrees: 40,
+          downDegrees: 40,
+          leftDegrees: 40,
+          rightDegrees: 40
+        }
+      };
+    }
   };
 
   this.getImmediatePose = function () {
@@ -474,15 +476,59 @@ var loadFiles = function () {
 }();
 "use strict";
 
-function WebVRBootstrapper(manifest, done, progress) {
+function StandardMonitorPolyfill() {
+  AbstractVRDisplayPolyfill.call(this, true, false, false, "39025D3C-3B12-4F92-9FF5-85DC887CB545", "Standard Monitor", function (layers) {
+    return FullScreen.request(layers[0].source);
+  });
+
+  Object.defineProperty(this, "isPresenting", {
+    get: function get() {
+      return true;
+    },
+    set: function set() {}
+  });
+
+  var currentPose = {
+    timestamp: 0,
+    frameID: 0,
+    orientation: new Float32Array([0, 0, 0, 1])
+  };
+
+  this.getEyeParameters = function (side) {
+    if (side === "left") {
+      return {
+        renderWidth: screen.width * devicePixelRatio,
+        renderHeight: screen.height * devicePixelRatio,
+        offset: new Float32Array([0, 0, 0]),
+        fieldOfView: {
+          upDegrees: 75,
+          downDegrees: 75,
+          leftDegrees: 75,
+          rightDegrees: 75
+        }
+      };
+    }
+  };
+
+  this.getImmediatePose = function () {
+    return currentPose;
+  };
+
+  this.getPose = function () {
+    return currentPose;
+  };
+
+  this.resetPose = function () {};
+}
+"use strict";
+
+function WebVRBootstrapper(manifest, preLoad) {
   "use strict";
 
   function setup() {
-    var ready = false;
     if (document.readyState === "complete") {
       var V = WebVRBootstrapper.Version;
       if (V === 1) {
-        ready = true;
         if (isMobile) {
           // fix a defect in mobile Android with WebVR 1.0
           var oldRequestPresent = VRDisplay.prototype.requestPresent;
@@ -491,7 +537,6 @@ function WebVRBootstrapper(manifest, done, progress) {
           };
         }
       } else if (V === 0.5) {
-        ready = true;
         navigator.getVRDisplays = function () {
           return navigator.getVRDevices().then(function (devices) {
             var displays = {},
@@ -521,21 +566,25 @@ function WebVRBootstrapper(manifest, done, progress) {
           });
         };
       } else if (V === 0.4) {
-        ready = false;
-        navigator.getVRDisplays = Promise.reject.bind(Promise, "You're using an extremely old version of Firefox Nightly. Please update your browser.");
+        navigator.getVRDisplays = Promise.reject.bind(Promise, "You're using an extremely old version of Firefox Nightly. Please update your browser. https://webvr.info/get-chrome/");
       } else if (V === 0.1) {
-        ready = true;
         navigator.getVRDisplays = Promise.resolve.bind(Promise, [new CardboardVRDisplayPolyfill()]);
       } else {
-        ready = false;
-        navigator.getVRDisplays = Promise.reject.bind(Promise, "Your browser does not support WebVR.");
+        navigator.getVRDisplays = Promise.resolve.bind(Promise, []);
       }
 
-      document.removeEventListener("readystatechange", setup);
+      var oldGetVRDisplays = navigator.getVRDisplays;
+      navigator.getVRDisplays = function () {
+        return oldGetVRDisplays.call(navigator).then(function (displays) {
+          displays.unshift(new StandardMonitorPolyfill());
+          return displays;
+        });
+      };
 
-      loadFiles(manifest, done, progress);
+      document.removeEventListener("readystatechange", setup);
+      preLoad(loadFiles.bind(null, manifest));
+      return true;
     }
-    return ready;
   }
   if (!setup()) {
     document.addEventListener("readystatechange", setup);
@@ -555,5 +604,3 @@ WebVRBootstrapper.Version = function () {
     return 0;
   }
 }();
-
-WebVRBootstrapper();

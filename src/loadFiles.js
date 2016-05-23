@@ -14,7 +14,7 @@
     req.send();
   }
 
-  function _loadFiles(files, done, progress, index, state, total, loaded) {
+  function _loadFiles(files, done, progress, index, total, loaded) {
     if (index < files.length) {
       var file = files[index][0],
         size = files[index][1],
@@ -28,11 +28,11 @@
           document.head.appendChild(s);
         }
 
-        _loadFiles(files, done, progress, index + 1, state, total, loaded);
+        _loadFiles(files, done, progress, index + 1, total, loaded);
       }, (evt) => progress(loaded = lastLoaded + evt.loaded, total));
     }
     else {
-      done(state);
+      done();
     }
   }
 
@@ -53,14 +53,14 @@
       console.log("loaded file %d of %d, loaded %d bytes of %d bytes total.", n, m, size, total);
   });
   */
-  return function loadFiles(manifestSpec, done, progress) {
+  return function loadFiles(manifestSpec, progress, done) {
     function readManifest(manifest) {
       var total = 0;
       for (var i = 0; i < manifest.length; ++i) {
         total += manifest[i][1];
       }
       progress = progress || console.log.bind(console, "File load progress");
-      _loadFiles(manifest, done, progress, 0, {}, total, 0);
+      _loadFiles(manifest, done, progress, 0, total, 0);
     }
 
     if (manifestSpec instanceof String || typeof manifestSpec === "string") {

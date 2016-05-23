@@ -1,6 +1,11 @@
 "use strict";
 
-window.isMobile = /(android|iP(hone|od|ad))/.test(navigator.userAgent);
+// adapted from http://detectmobilebrowsers.com/
+
+window.isMobile = function (a) {
+  return (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od|ad)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substring(0, 4))
+  );
+}(navigator.userAgent || navigator.vendor || window.opera);
 
 function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, displayID, displayName, requestPresent) {
   var _this = this;
@@ -419,7 +424,7 @@ var loadFiles = function () {
     req.send();
   }
 
-  function _loadFiles(files, done, progress, index, state, total, loaded) {
+  function _loadFiles(files, done, progress, index, total, loaded) {
     if (index < files.length) {
       var file = files[index][0],
           size = files[index][1],
@@ -433,12 +438,12 @@ var loadFiles = function () {
           document.head.appendChild(s);
         }
 
-        _loadFiles(files, done, progress, index + 1, state, total, loaded);
+        _loadFiles(files, done, progress, index + 1, total, loaded);
       }, function (evt) {
         return progress(loaded = lastLoaded + evt.loaded, total);
       });
     } else {
-      done(state);
+      done();
     }
   }
 
@@ -457,14 +462,14 @@ var loadFiles = function () {
       console.log("loaded file %d of %d, loaded %d bytes of %d bytes total.", n, m, size, total);
   });
   */
-  return function loadFiles(manifestSpec, done, progress) {
+  return function loadFiles(manifestSpec, progress, done) {
     function readManifest(manifest) {
       var total = 0;
       for (var i = 0; i < manifest.length; ++i) {
         total += manifest[i][1];
       }
       progress = progress || console.log.bind(console, "File load progress");
-      _loadFiles(manifest, done, progress, 0, {}, total, 0);
+      _loadFiles(manifest, done, progress, 0, total, 0);
     }
 
     if (manifestSpec instanceof String || typeof manifestSpec === "string") {
@@ -525,85 +530,95 @@ function StandardMonitorPolyfill() {
 }
 "use strict";
 
-function WebVRBootstrapper(manifest, preLoad) {
-  "use strict";
+var WebVRBootstrapper = function () {
+  var V = function () {
+    if (navigator.getVRDisplays) {
+      return 1.0;
+    } else if (navigator.getVRDevices) {
+      return 0.5;
+    } else if (navigator.mozGetVRDevices) {
+      return 0.4;
+    } else if (isMobile) {
+      return 0.1;
+    } else {
+      return 0;
+    }
+  }();
 
-  function setup() {
-    if (document.readyState === "complete") {
-      var V = WebVRBootstrapper.Version;
-      if (V === 1) {
-        if (isMobile) {
-          // fix a defect in mobile Android with WebVR 1.0
-          var oldRequestPresent = VRDisplay.prototype.requestPresent;
-          VRDisplay.prototype.requestPresent = function (layers) {
-            return oldRequestPresent.call(this, layers[0]);
+  function WebVRBootstrapper(manifest, preLoad) {
+    "use strict";
+
+    function setup() {
+      if (document.readyState === "complete") {
+        if (V === 1) {
+          if (isMobile) {
+            // fix a defect in mobile Android with WebVR 1.0
+            var oldRequestPresent = VRDisplay.prototype.requestPresent;
+            VRDisplay.prototype.requestPresent = function (layers) {
+              return oldRequestPresent.call(this, layers[0]);
+            };
+          }
+        } else if (V === 0.5) {
+          navigator.getVRDisplays = function () {
+            return navigator.getVRDevices().then(function (devices) {
+              var displays = {},
+                  id = null;
+
+              for (var i = 0; i < devices.length; ++i) {
+                var device = devices[i];
+                id = device.hardwareUnitId;
+                if (!displays[id]) {
+                  displays[id] = {};
+                }
+
+                var display = displays[id];
+                if (device instanceof HMDVRDevice) {
+                  display.display = device;
+                } else if (devices[i] instanceof PositionSensorVRDevice) {
+                  display.sensor = device;
+                }
+              }
+
+              var mockedLegacyDisplays = [];
+              for (id in displays) {
+                mockedLegacyDisplays.push(new LegacyVRDisplayPolyfill(displays[id].display, displays[id].sensor));
+              }
+
+              return mockedLegacyDisplays;
+            });
           };
+        } else if (V === 0.4) {
+          navigator.getVRDisplays = Promise.reject.bind(Promise, "You're using an extremely old version of Firefox Nightly. Please update your browser. https://webvr.info/get-chrome/");
+        } else if (V === 0.1) {
+          navigator.getVRDisplays = Promise.resolve.bind(Promise, [new CardboardVRDisplayPolyfill()]);
+        } else {
+          navigator.getVRDisplays = Promise.resolve.bind(Promise, []);
         }
-      } else if (V === 0.5) {
+
+        var oldGetVRDisplays = navigator.getVRDisplays;
         navigator.getVRDisplays = function () {
-          return navigator.getVRDevices().then(function (devices) {
-            var displays = {},
-                id = null;
-
-            for (var i = 0; i < devices.length; ++i) {
-              var device = devices[i];
-              id = device.hardwareUnitId;
-              if (!displays[id]) {
-                displays[id] = {};
-              }
-
-              var display = displays[id];
-              if (device instanceof HMDVRDevice) {
-                display.display = device;
-              } else if (devices[i] instanceof PositionSensorVRDevice) {
-                display.sensor = device;
-              }
+          return oldGetVRDisplays.call(navigator).then(function (displays) {
+            if (displays.length === 0 || !(displays[0] instanceof StandardMonitorPolyfill)) {
+              displays.unshift(new StandardMonitorPolyfill());
             }
-
-            var mockedLegacyDisplays = [];
-            for (id in displays) {
-              mockedLegacyDisplays.push(new LegacyVRDisplayPolyfill(displays[id].display, displays[id].sensor));
-            }
-
-            return mockedLegacyDisplays;
+            return displays;
           });
         };
-      } else if (V === 0.4) {
-        navigator.getVRDisplays = Promise.reject.bind(Promise, "You're using an extremely old version of Firefox Nightly. Please update your browser. https://webvr.info/get-chrome/");
-      } else if (V === 0.1) {
-        navigator.getVRDisplays = Promise.resolve.bind(Promise, [new CardboardVRDisplayPolyfill()]);
-      } else {
-        navigator.getVRDisplays = Promise.resolve.bind(Promise, []);
-      }
 
-      var oldGetVRDisplays = navigator.getVRDisplays;
-      navigator.getVRDisplays = function () {
-        return oldGetVRDisplays.call(navigator).then(function (displays) {
-          displays.unshift(new StandardMonitorPolyfill());
-          return displays;
+        document.removeEventListener("readystatechange", setup);
+        preLoad(function (progress, done) {
+          loadFiles(manifest, progress, function () {
+            navigator.getVRDisplays().then(done);
+          });
         });
-      };
-
-      document.removeEventListener("readystatechange", setup);
-      preLoad(loadFiles.bind(null, manifest));
-      return true;
+        return true;
+      }
+    }
+    if (!setup()) {
+      document.addEventListener("readystatechange", setup);
     }
   }
-  if (!setup()) {
-    document.addEventListener("readystatechange", setup);
-  }
-}
 
-WebVRBootstrapper.Version = function () {
-  if (navigator.getVRDisplays) {
-    return 1.0;
-  } else if (navigator.getVRDevices) {
-    return 0.5;
-  } else if (navigator.mozGetVRDevices) {
-    return 0.4;
-  } else if (isMobile) {
-    return 0.1;
-  } else {
-    return 0;
-  }
+  WebVRBootstrapper.Version = V;
+  return WebVRBootstrapper;
 }();

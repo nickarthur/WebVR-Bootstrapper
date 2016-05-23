@@ -1,5 +1,5 @@
-﻿function AbstractDeviceMotionDisplayPolyfill() {
-  AbstractVRDisplayPolyfill.call(this, true, isMobile, false, "B4CEAE28-1A89-4314-872E-9C223DDABD02", "Device Motion API", (layers) => {
+﻿function AbstractDeviceMotionDisplayPolyfill(id, name) {
+  AbstractVRDisplayPolyfill.call(this, true, isMobile, false, id, name, (layers) => {
     return FullScreen.request(layers[0].source);
   });
 

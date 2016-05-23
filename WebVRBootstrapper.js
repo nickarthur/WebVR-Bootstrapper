@@ -1,7 +1,7 @@
 "use strict";
 
-function AbstractDeviceMotionDisplayPolyfill() {
-  AbstractVRDisplayPolyfill.call(this, true, isMobile, false, "B4CEAE28-1A89-4314-872E-9C223DDABD02", "Device Motion API", function (layers) {
+function AbstractDeviceMotionDisplayPolyfill(id, name) {
+  AbstractVRDisplayPolyfill.call(this, true, isMobile, false, id, name, function (layers) {
     return FullScreen.request(layers[0].source);
   });
 
@@ -194,7 +194,7 @@ function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, disp
 "use strict";
 
 function CardboardVRDisplayPolyfill() {
-  AbstractDeviceMotionDisplayPolyfill.call(this);
+  AbstractDeviceMotionDisplayPolyfill.call(this, "B4CEAE28-1A89-4314-872E-9C223DDABD02", "Device Motion API");
 
   this.getEyeParameters = function (side) {
     if (side === "left" || side === "right") {
@@ -492,14 +492,7 @@ var loadFiles = function () {
 "use strict";
 
 function StandardMonitorPolyfill() {
-  AbstractDeviceMotionDisplayPolyfill.call(this);
-
-  Object.defineProperty(this, "isPresenting", {
-    get: function get() {
-      return true;
-    },
-    set: function set() {}
-  });
+  AbstractDeviceMotionDisplayPolyfill.call(this, "39025D3C-3B12-4F92-9FF5-85DC887CB545", "Standard Monitor");
 
   this.getEyeParameters = function (side) {
     if (side === "left") {

@@ -1,91 +1,6 @@
 "use strict";
 
-// adapted from http://detectmobilebrowsers.com/
-
-window.isMobile = function (a) {
-  return (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od|ad)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substring(0, 4))
-  );
-}(navigator.userAgent || navigator.vendor || window.opera);
-
-function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, displayID, displayName, requestPresent) {
-  var _this = this;
-
-  this.capabilities = {
-    canPresent: canPresent,
-    hasExternalDisplay: false,
-    hasOrientation: hasOrientation,
-    hasPosition: hasPosition
-  };
-
-  this.displayID = displayID;
-  this.displayName = displayName;
-  this.isConnected = true;
-  this.isPresenting = false;
-  this.stageParameters = null;
-
-  var currentLayer = null;
-
-  var onFullScreenRemoved = function onFullScreenRemoved() {
-    FullScreen.removeChangeListener(onFullScreenRemoved);
-    _this.exitPresent();
-    window.dispatchEvent(new Event("vrdisplaypresentchange"));
-  };
-
-  this.requestPresent = function (layers) {
-    if (!_this.capabilities.canPresent) {
-      return Promrise.reject(new Error("This device cannot be used as a presentation display. DisplayID: " + _this.displayId + ". Name: " + _this.displayName));
-    } else if (!layers) {
-      return Promise.reject(new Error("No layers provided to requestPresent"));
-    } else if (!(layers instanceof Array)) {
-      return Promise.reject(new Error("Layers parameters must be an array"));
-    } else if (layers.length !== 1) {
-      return Promise.reject(new Error("Only one layer at a time is supported right now."));
-    } else if (!layers[0].source) {
-      return Promise.reject(new Error("No source on layer parameter."));
-    } else {
-      return requestPresent(layers).then(function (elem) {
-        currentLayer = layers[0];
-        _this.isPresenting = elem === currentLayer.source;
-        FullScreen.addChangeListener(onFullScreenRemoved, false);
-        window.dispatchEvent(new Event("vrdisplaypresentchange"));
-        return elem;
-      });
-    }
-  };
-
-  this.getLayers = function () {
-    if (currentLayer) {
-      return [currentLayer];
-    } else {
-      return [];
-    }
-  };
-
-  this.exitPresent = function () {
-    var clear = function clear(obj) {
-      _this.isPresenting = false;
-      currentLayer = null;
-      return obj;
-    };
-    return FullScreen.exit().then(clear).catch(function (err) {
-      console.error(err.message || err);
-      clear();
-    });
-  };
-
-  this.requestAnimationFrame = function (thunk) {
-    window.requestAnimationFrame(thunk);
-  };
-
-  this.cancelAnimationFrame = function (handle) {
-    window.cancelAnimationFrame(handle);
-  };
-
-  this.submitFrame = function () {};
-}
-"use strict";
-
-function CardboardVRDisplayPolyfill() {
+function AbstractDeviceMotionDisplayPolyfill() {
   AbstractVRDisplayPolyfill.call(this, true, isMobile, false, "B4CEAE28-1A89-4314-872E-9C223DDABD02", "Device Motion API", function (layers) {
     return FullScreen.request(layers[0].source);
   });
@@ -176,6 +91,111 @@ function CardboardVRDisplayPolyfill() {
     }
   }
 
+  this.getImmediatePose = function () {
+    return currentPose;
+  };
+
+  this.getPose = function () {
+    return currentPose;
+  };
+
+  this.resetPose = function () {
+    zeroAlpha = alpha;
+  };
+}
+"use strict";
+
+// adapted from http://detectmobilebrowsers.com/
+
+window.isMobile = function (a) {
+  return (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od|ad)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substring(0, 4))
+  );
+}(navigator.userAgent || navigator.vendor || window.opera);
+
+function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, displayID, displayName, requestPresent) {
+  var _this = this;
+
+  this.capabilities = {
+    canPresent: canPresent,
+    hasExternalDisplay: false,
+    hasOrientation: hasOrientation,
+    hasPosition: hasPosition
+  };
+
+  this.displayID = displayID;
+  this.displayName = displayName;
+  this.isConnected = true;
+  this.isPresenting = false;
+  this.stageParameters = null;
+
+  var currentLayer = null;
+
+  var onFullScreenRemoved = function onFullScreenRemoved() {
+    FullScreen.removeChangeListener(onFullScreenRemoved);
+    _this.exitPresent();
+    window.dispatchEvent(new Event("vrdisplaypresentchange"));
+  };
+
+  this.requestPresent = function (layers) {
+    if (!_this.capabilities.canPresent) {
+      return Promrise.reject(new Error("This device cannot be used as a presentation display. DisplayID: " + _this.displayId + ". Name: " + _this.displayName));
+    } else if (!layers) {
+      return Promise.reject(new Error("No layers provided to requestPresent"));
+    } else if (!(layers instanceof Array)) {
+      return Promise.reject(new Error("Layers parameters must be an array"));
+    } else if (layers.length !== 1) {
+      return Promise.reject(new Error("Only one layer at a time is supported right now."));
+    } else if (!layers[0].source) {
+      return Promise.reject(new Error("No source on layer parameter."));
+    } else {
+      return requestPresent(layers).catch(function (exp) {
+        return console.error(exp);
+      }).then(function (elem) {
+        console.log(elem);
+        currentLayer = layers[0];
+        _this.isPresenting = elem === currentLayer.source;
+        FullScreen.addChangeListener(onFullScreenRemoved, false);
+        window.dispatchEvent(new Event("vrdisplaypresentchange"));
+        return elem;
+      });
+    }
+  };
+
+  this.getLayers = function () {
+    if (currentLayer) {
+      return [currentLayer];
+    } else {
+      return [];
+    }
+  };
+
+  this.exitPresent = function () {
+    var clear = function clear(obj) {
+      _this.isPresenting = false;
+      currentLayer = null;
+      return obj;
+    };
+    return FullScreen.exit().then(clear).catch(function (err) {
+      console.error(err.message || err);
+      clear();
+    });
+  };
+
+  this.requestAnimationFrame = function (thunk) {
+    window.requestAnimationFrame(thunk);
+  };
+
+  this.cancelAnimationFrame = function (handle) {
+    window.cancelAnimationFrame(handle);
+  };
+
+  this.submitFrame = function () {};
+}
+"use strict";
+
+function CardboardVRDisplayPolyfill() {
+  AbstractDeviceMotionDisplayPolyfill.call(this);
+
   this.getEyeParameters = function (side) {
     if (side === "left" || side === "right") {
       var dEye = side === "left" ? -1 : 1;
@@ -192,18 +212,6 @@ function CardboardVRDisplayPolyfill() {
         }
       };
     }
-  };
-
-  this.getImmediatePose = function () {
-    return currentPose;
-  };
-
-  this.getPose = function () {
-    return currentPose;
-  };
-
-  this.resetPose = function () {
-    zeroAlpha = alpha;
   };
 }
 "use strict";
@@ -484,9 +492,7 @@ var loadFiles = function () {
 "use strict";
 
 function StandardMonitorPolyfill() {
-  AbstractVRDisplayPolyfill.call(this, true, false, false, "39025D3C-3B12-4F92-9FF5-85DC887CB545", "Standard Monitor", function (layers) {
-    return FullScreen.request(layers[0].source);
-  });
+  AbstractDeviceMotionDisplayPolyfill.call(this);
 
   Object.defineProperty(this, "isPresenting", {
     get: function get() {
@@ -494,13 +500,6 @@ function StandardMonitorPolyfill() {
     },
     set: function set() {}
   });
-
-  var currentPose = {
-    timestamp: 0,
-    frameID: 0,
-    orientation: new Float32Array([0, 0, 0, 1]),
-    position: new Float32Array([0, 0, 0])
-  };
 
   this.getEyeParameters = function (side) {
     if (side === "left") {
@@ -517,17 +516,84 @@ function StandardMonitorPolyfill() {
       };
     }
   };
-
-  this.getImmediatePose = function () {
-    return currentPose;
-  };
-
-  this.getPose = function () {
-    return currentPose;
-  };
-
-  this.resetPose = function () {};
 }
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var ViewCameraTransform = function () {
+  _createClass(ViewCameraTransform, null, [{
+    key: "makeTransform",
+    value: function makeTransform(eye, near, far) {
+      var t = eye.offset;
+      return {
+        translation: new THREE.Matrix4().makeTranslation(t[0], t[1], t[2]),
+        projection: ViewCameraTransform.fieldOfViewToProjectionMatrix(eye.fieldOfView, near, far),
+        viewport: {
+          left: 0,
+          right: 0,
+          width: eye.renderWidth,
+          height: eye.renderHeight
+        }
+      };
+    }
+  }, {
+    key: "fieldOfViewToProjectionMatrix",
+    value: function fieldOfViewToProjectionMatrix(fov, zNear, zFar) {
+      var upTan = Math.tan(fov.upDegrees * Math.PI / 180.0),
+          downTan = Math.tan(fov.downDegrees * Math.PI / 180.0),
+          leftTan = Math.tan(fov.leftDegrees * Math.PI / 180.0),
+          rightTan = Math.tan(fov.rightDegrees * Math.PI / 180.0),
+          xScale = 2.0 / (leftTan + rightTan),
+          yScale = 2.0 / (upTan + downTan),
+          matrix = new THREE.Matrix4();
+
+      matrix.elements[0] = xScale;
+      matrix.elements[1] = 0.0;
+      matrix.elements[2] = 0.0;
+      matrix.elements[3] = 0.0;
+      matrix.elements[4] = 0.0;
+      matrix.elements[5] = yScale;
+      matrix.elements[6] = 0.0;
+      matrix.elements[7] = 0.0;
+      matrix.elements[8] = -((leftTan - rightTan) * xScale * 0.5);
+      matrix.elements[9] = (upTan - downTan) * yScale * 0.5;
+      matrix.elements[10] = -(zNear + zFar) / (zFar - zNear);
+      matrix.elements[11] = -1.0;
+      matrix.elements[12] = 0.0;
+      matrix.elements[13] = 0.0;
+      matrix.elements[14] = -(2.0 * zFar * zNear) / (zFar - zNear);
+      matrix.elements[15] = 0.0;
+
+      return matrix;
+    }
+  }]);
+
+  function ViewCameraTransform(display) {
+    _classCallCheck(this, ViewCameraTransform);
+
+    this._params = [display.getEyeParameters("left"), display.getEyeParameters("right")];
+  }
+
+  _createClass(ViewCameraTransform, [{
+    key: "getTransforms",
+    value: function getTransforms(near, far) {
+      var params = this._params.filter(function (t) {
+        return t;
+      }).map(function (p) {
+        return ViewCameraTransform.makeTransform(p, near, far);
+      });
+      for (var i = 1; i < params.length; ++i) {
+        params[i].viewport.left = params[i - 1].viewport.left + params[i - 1].viewport.width;
+      }
+      return params;
+    }
+  }]);
+
+  return ViewCameraTransform;
+}();
 "use strict";
 
 var WebVRBootstrapper = function () {

@@ -48,7 +48,9 @@ function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, disp
     }
     else {
       return requestPresent(layers)
+        .catch((exp) => console.error(exp))
         .then((elem) => {
+          console.log(elem);
           currentLayer = layers[0];
           this.isPresenting = elem === currentLayer.source;
           FullScreen.addChangeListener(onFullScreenRemoved, false);

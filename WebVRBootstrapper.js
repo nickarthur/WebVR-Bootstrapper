@@ -5,10 +5,15 @@ function AbstractDeviceMotionDisplayPolyfill(id, name) {
     return FullScreen.request(layers[0].source);
   });
 
-  var currentPose = null,
-      frameID = 0,
+  var frameID = 0,
       q = new Float32Array([0, 0, 0, 1]),
       p = new Float32Array([0, 0, 0]),
+      currentPose = {
+    timestamp: 0,
+    frameID: 0,
+    orientation: q,
+    position: p
+  },
       c = Math.sqrt(0.5),
       zeroAlpha = 0,
       first = true,
@@ -43,9 +48,8 @@ function AbstractDeviceMotionDisplayPolyfill(id, name) {
   }
 
   function checkDeviceOrientation(event) {
-
     var t = performance.now();
-    if (!currentPose || t > currentPose.timestamp) {
+    if (t > currentPose.timestamp) {
 
       beta = event.beta * Math.PI / 180;
       alpha = event.alpha * Math.PI / 180;
@@ -148,10 +152,7 @@ function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, disp
     } else if (!layers[0].source) {
       return Promise.reject(new Error("No source on layer parameter."));
     } else {
-      return requestPresent(layers).catch(function (exp) {
-        return console.error(exp);
-      }).then(function (elem) {
-        console.log(elem);
+      return requestPresent(layers).then(function (elem) {
         currentLayer = layers[0];
         _this.isPresenting = elem === currentLayer.source;
         FullScreen.addChangeListener(onFullScreenRemoved, false);
@@ -501,10 +502,10 @@ function StandardMonitorPolyfill() {
         renderHeight: screen.height * devicePixelRatio,
         offset: new Float32Array([0, 0, 0]),
         fieldOfView: {
-          upDegrees: 75,
-          downDegrees: 75,
-          leftDegrees: 75,
-          rightDegrees: 75
+          upDegrees: 25,
+          downDegrees: 25,
+          leftDegrees: 25,
+          rightDegrees: 25
         }
       };
     }

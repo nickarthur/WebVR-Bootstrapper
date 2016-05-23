@@ -8,10 +8,10 @@
         renderHeight: screen.height * devicePixelRatio,
         offset: new Float32Array([0, 0, 0]),
         fieldOfView: {
-          upDegrees: 75,
-          downDegrees: 75,
-          leftDegrees: 75,
-          rightDegrees: 75
+          upDegrees: 25,
+          downDegrees: 25,
+          leftDegrees: 25,
+          rightDegrees: 25
         }
       };
     }

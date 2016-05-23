@@ -93,6 +93,8 @@
     }
   }
 
+  window.addEventListener("deviceorientation", waitForOrientation, false);
+
   this.getImmediatePose = function () {
     return currentPose;
   };

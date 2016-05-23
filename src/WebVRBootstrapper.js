@@ -98,12 +98,12 @@
 
   WebVRBootstrapper.Version = V;
 
-  var wasFullScreen;
+  var wasFullScreen = false;
   WebVRBootstrapper.dispalyPresentChangeCheck = function () {
     if (V === 1 && isMobile) {
-      if (wasFullscreen !== FullScreen.isActive) {
+      if (wasFullScreen !== FullScreen.isActive) {
         window.dispatchEvent(new Event("vrdisplaypresentchange"));
-        wasFullscreen = FullScreen.isActive;
+        wasFullScreen = FullScreen.isActive;
       }
     }
   };

@@ -679,5 +679,15 @@ var WebVRBootstrapper = function () {
   }
 
   WebVRBootstrapper.Version = V;
+
+  var wasFullScreen;
+  WebVRBootstrapper.dispalyPresentChangeCheck = function () {
+    if (V === 1 && isMobile) {
+      if (wasFullscreen !== FullScreen.isActive) {
+        window.dispatchEvent(new Event("vrdisplaypresentchange"));
+        wasFullscreen = FullScreen.isActive;
+      }
+    }
+  };
   return WebVRBootstrapper;
 }();

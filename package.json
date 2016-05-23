@@ -17,8 +17,8 @@
   "files": [
     "LICENSE.md",
     "README.md",
-    "WebVR-Bootstrapper.js",
-    "WebVR-Bootstrapper.min.js",
+    "WebVRBootstrapper.js",
+    "WebVRBootstrapper.min.js",
     "src/"
   ],
   "scripts": {

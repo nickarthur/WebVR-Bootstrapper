@@ -12,7 +12,7 @@
     timestamp: 0,
     frameID: 0,
     orientation: new Float32Array([0, 0, 0, 1]),
-    position: new Float32Array([0, 0, 0]);
+    position: new Float32Array([0, 0, 0])
   };
 
   this.getEyeParameters = function (side) {

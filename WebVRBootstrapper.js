@@ -87,7 +87,8 @@ function CardboardVRDisplayPolyfill() {
 
   var currentPose = null,
       frameID = 0,
-      q = [0, 0, 0, 0],
+      q = new Float32Array([0, 0, 0, 1]),
+      p = new Float32Array([0, 0, 0]),
       c = Math.sqrt(0.5),
       zeroAlpha = 0,
       first = true,
@@ -164,7 +165,8 @@ function CardboardVRDisplayPolyfill() {
       currentPose = {
         timestamp: t,
         frameID: ++frameID,
-        orientation: new Float32Array(q)
+        orientation: q,
+        position: p
       };
     }
   }
@@ -491,7 +493,8 @@ function StandardMonitorPolyfill() {
   var currentPose = {
     timestamp: 0,
     frameID: 0,
-    orientation: new Float32Array([0, 0, 0, 1])
+    orientation: new Float32Array([0, 0, 0, 1]),
+    position: new Float32Array([0, 0, 0])
   };
 
   this.getEyeParameters = function (side) {

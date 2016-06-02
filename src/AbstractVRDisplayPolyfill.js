@@ -16,8 +16,8 @@
 
   var onFullScreenRemoved = () => {
     FullScreen.removeChangeListener(onFullScreenRemoved);
-    this.exitPresent();
-    window.dispatchEvent(new Event("vrdisplaypresentchange"));
+    this.exitPresent()
+      .then(() => window.dispatchEvent(new Event("vrdisplaypresentchange")));
   };
 
   this.requestPresent = (layers) => {

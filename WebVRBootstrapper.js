@@ -102,7 +102,9 @@ function AbstractDeviceMotionDisplayPolyfill(id, name) {
     }
   }
 
-  window.addEventListener("deviceorientation", waitForOrientation, false);
+  if (isMobile) {
+    window.addEventListener("deviceorientation", waitForOrientation, false);
+  }
 
   this.getImmediatePose = function () {
     return currentPose;

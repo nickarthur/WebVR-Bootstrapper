@@ -1,7 +1,7 @@
 {
   "name": "webvr-bootstrapper",
   "description": "A minimalist set of code to be able to get an image into a VR HMD as soon as possible",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "main": "server.js",
   "author": "Sean T. McBeth <sean@seanmcbeth.com> (https://www.seanmcbeth.com)",
   "engines": {

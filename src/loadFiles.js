@@ -7,6 +7,9 @@
       if (req.status < 400) {
         done(req.response);
       }
+      else{
+        done(new Error(req.status))
+      }
     };
 
     req.open("GET", url);
@@ -21,7 +24,10 @@
         ext = file.match(/\.\w+$/)[0] || "none",
         lastLoaded = loaded;
       get(file, (content) => {
-        if (ext === ".js") {
+        if(content instanceof Error){
+          console.error("Failed to load " + file + ": " + content.message);
+        }
+        else if (ext === ".js") {
           var s = document.createElement("script");
           s.type = "text/javascript";
           s.appendChild(document.createTextNode(content));

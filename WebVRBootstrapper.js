@@ -430,6 +430,8 @@ var loadFiles = function () {
     req.onload = function () {
       if (req.status < 400) {
         done(req.response);
+      } else {
+        done(new Error(req.status));
       }
     };
 
@@ -445,7 +447,9 @@ var loadFiles = function () {
           ext = file.match(/\.\w+$/)[0] || "none",
           lastLoaded = loaded;
       get(file, function (content) {
-        if (ext === ".js") {
+        if (content instanceof Error) {
+          console.error("Failed to load " + file + ": " + content.message);
+        } else if (ext === ".js") {
           var s = document.createElement("script");
           s.type = "text/javascript";
           s.appendChild(document.createTextNode(content));

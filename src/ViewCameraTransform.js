@@ -43,16 +43,16 @@
   }
 
   constructor(display) {
-    this._params = [
-      display.getEyeParameters("left"),
-      display.getEyeParameters("right")
-    ];
+    this._display = display;
   }
 
   getTransforms(near, far) {
-    var params = this._params
-      .filter((t) => t)
-      .map((p) => ViewCameraTransform.makeTransform(p, near, far));
+    var l = this._display.getEyeParameters("left"),
+      r = this._display.getEyeParameters("right"),
+      params = [ViewCameraTransform.makeTransform(l, near, far)];
+    if(r){
+      params.push(ViewCameraTransform.makeTransform(r, near, far));
+    }
     for (var i = 1; i < params.length; ++i) {
       params[i].viewport.left = params[i - 1].viewport.left + params[i - 1].viewport.width;
     }

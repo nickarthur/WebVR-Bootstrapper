@@ -504,17 +504,24 @@ var loadFiles = function () {
 function StandardMonitorPolyfill() {
   AbstractDeviceMotionDisplayPolyfill.call(this, "39025D3C-3B12-4F92-9FF5-85DC887CB545", "Standard Monitor");
 
+  this.DOMElement = null;
+
   this.getEyeParameters = function (side) {
     if (side === "left") {
+      var width = this.DOMElement && this.DOMElement.offsetWidth || screen.width,
+          height = this.DOMElement && this.DOMElement.offsetHeight || screen.height,
+          aspect = width / height,
+          vFOV = 25,
+          hFOV = vFOV * aspect;
       return {
-        renderWidth: screen.width * devicePixelRatio,
-        renderHeight: screen.height * devicePixelRatio,
+        renderWidth: width * devicePixelRatio,
+        renderHeight: height * devicePixelRatio,
         offset: new Float32Array([0, 0, 0]),
         fieldOfView: {
-          upDegrees: 25,
-          downDegrees: 25,
-          leftDegrees: 25,
-          rightDegrees: 25
+          upDegrees: vFOV,
+          downDegrees: vFOV,
+          leftDegrees: hFOV,
+          rightDegrees: hFOV
         }
       };
     }
@@ -577,17 +584,18 @@ var ViewCameraTransform = function () {
   function ViewCameraTransform(display) {
     _classCallCheck(this, ViewCameraTransform);
 
-    this._params = [display.getEyeParameters("left"), display.getEyeParameters("right")];
+    this._display = display;
   }
 
   _createClass(ViewCameraTransform, [{
     key: "getTransforms",
     value: function getTransforms(near, far) {
-      var params = this._params.filter(function (t) {
-        return t;
-      }).map(function (p) {
-        return ViewCameraTransform.makeTransform(p, near, far);
-      });
+      var l = this._display.getEyeParameters("left"),
+          r = this._display.getEyeParameters("right"),
+          params = [ViewCameraTransform.makeTransform(l, near, far)];
+      if (r) {
+        params.push(ViewCameraTransform.makeTransform(r, near, far));
+      }
       for (var i = 1; i < params.length; ++i) {
         params[i].viewport.left = params[i - 1].viewport.left + params[i - 1].viewport.width;
       }

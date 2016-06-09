@@ -30,7 +30,9 @@
         else if (ext === ".js") {
           var s = document.createElement("script");
           s.type = "text/javascript";
-          s.appendChild(document.createTextNode(content));
+          s.src = file;
+          s.defer = false;
+          s.async = false;
           document.head.appendChild(s);
         }
 

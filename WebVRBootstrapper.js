@@ -444,12 +444,13 @@ var loadFiles = function () {
     if (index < files.length) {
       var file = files[index][0],
           size = files[index][1],
-          ext = file.match(/\.\w+$/)[0] || "none",
+          shortExt = file.match(/\.\w+$/)[0] || "none",
+          longExt = file.match(/(\.\w+)+$/)[0] || "none",
           lastLoaded = loaded;
       get(file, function (content) {
         if (content instanceof Error) {
           console.error("Failed to load " + file + ": " + content.message);
-        } else if (ext === ".js") {
+        } else if (shortExt === ".js" && longExt !== ".typeface.js") {
           var s = document.createElement("script");
           s.type = "text/javascript";
           s.src = file;

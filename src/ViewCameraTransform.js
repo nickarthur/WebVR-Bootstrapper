@@ -1,8 +1,7 @@
 ﻿class ViewCameraTransform {
   static makeTransform(eye, near, far) {
-    var t = eye.offset;
     return {
-      translation: new THREE.Matrix4().makeTranslation(t[0], t[1], t[2]),
+      translation: new THREE.Vector3().fromArray(eye.offset),
       projection: ViewCameraTransform.fieldOfViewToProjectionMatrix(eye.fieldOfView, near, far),
       viewport: {
         left: 0,

@@ -1,7 +1,7 @@
 # 9: LICENSE
 
 https://www.github.com/capnmidnight/WebVR-Bootstrapper
-Copyright (c) 2015 Sean T. McBeth
+Copyright (c) 2016 Sean T. McBeth
 All rights reserved.
 
 ## GNU GENERAL PUBLIC LICENSE

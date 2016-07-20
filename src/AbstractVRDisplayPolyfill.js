@@ -71,13 +71,7 @@ function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, disp
       });
   };
 
-  this.requestAnimationFrame = (thunk) => {
-    window.requestAnimationFrame(thunk);
-  };
-
-  this.cancelAnimationFrame = (handle) => {
-    window.cancelAnimationFrame(handle);
-  };
-
+  this.requestAnimationFrame = (thunk) => window.requestAnimationFrame(thunk);
+  this.cancelAnimationFrame = (handle) => window.cancelAnimationFrame(handle);
   this.submitFrame = () => {};
 }

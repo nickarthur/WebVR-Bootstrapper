@@ -9,9 +9,7 @@ window.isMobile = (function (a) {
 })(navigator.userAgent || navigator.vendor || window.opera);
 
 function AbstractDeviceMotionDisplayPolyfill(id, name) {
-  AbstractVRDisplayPolyfill.call(this, true, isMobile, false, id, name, (layers) => {
-    return FullScreen.request(layers[0].source);
-  });
+  AbstractVRDisplayPolyfill.call(this, true, isMobile, false, id, name, (layers) => FullScreen.request(layers[0].source));
 
   var frameID = 0,
     q = new Float32Array([0, 0, 0, 1]),

@@ -1,4 +1,4 @@
-﻿function LegacyVRDisplayPolyfill(legacyDisplay, legacySensor) {
+function LegacyVRDisplayPolyfill(legacyDisplay, legacySensor) {
   function makeDisplayName(legacyDisplay, legacySensor) {
     var displayName = "";
     var a = legacyDisplay.deviceName,
@@ -14,6 +14,7 @@
 
   var frameID = 0,
     fields = ["position", "linearVelocity", "linearAcceleration", "orientation", "angularVelocity", "angularAcceleration"];
+
   function createPoseFromState(state) {
     var pose = {
       timestamp: state.timestamp,

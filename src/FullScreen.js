@@ -1,5 +1,6 @@
-﻿var FullScreen = (function () {
+var FullScreen = (function () {
   "use strict";
+
   function findProperty(elem, arr, pre, post) {
     for (var i = 0; i < arr.length; ++i) {
       var name = pre + arr[i] + post;
@@ -76,7 +77,8 @@
         }
         else if (isChrome) {
           elem[requestMethodName](window.Element.ALLOW_KEYBOARD_INPUT);
-        } else {
+        }
+        else {
           elem[requestMethodName]();
         }
       });

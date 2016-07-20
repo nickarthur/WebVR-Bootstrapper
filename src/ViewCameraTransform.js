@@ -1,7 +1,8 @@
-﻿class ViewCameraTransform {
+class ViewCameraTransform {
   static makeTransform(eye, near, far) {
     return {
-      translation: new THREE.Vector3().fromArray(eye.offset),
+      translation: new THREE.Vector3()
+        .fromArray(eye.offset),
       projection: ViewCameraTransform.fieldOfViewToProjectionMatrix(eye.fieldOfView, near, far),
       viewport: {
         left: 0,
@@ -49,7 +50,7 @@
     var l = this._display.getEyeParameters("left"),
       r = this._display.getEyeParameters("right"),
       params = [ViewCameraTransform.makeTransform(l, near, far)];
-    if(r){
+    if (r) {
       params.push(ViewCameraTransform.makeTransform(r, near, far));
     }
     for (var i = 1; i < params.length; ++i) {

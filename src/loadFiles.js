@@ -1,4 +1,4 @@
-﻿var loadFiles = (function () {
+var loadFiles = (function () {
   "use strict";
 
   function get(url, done, progress) {
@@ -7,7 +7,7 @@
       if (req.status < 400) {
         done(req.response);
       }
-      else{
+      else {
         done(new Error(req.status))
       }
     };
@@ -25,7 +25,7 @@
         longExt = file.match(/(\.\w+)+$/)[0] || "none",
         lastLoaded = loaded;
       get(file, (content) => {
-        if(content instanceof Error){
+        if (content instanceof Error) {
           console.error("Failed to load " + file + ": " + content.message);
         }
         else if (shortExt === ".js" && longExt !== ".typeface.js") {

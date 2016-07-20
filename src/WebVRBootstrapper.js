@@ -1,4 +1,4 @@
-﻿const WebVRBootstrapper = (function () {
+const WebVRBootstrapper = (function () {
   const V = (function () {
     if (navigator.getVRDisplays) {
       return 1.0;
@@ -19,6 +19,7 @@
 
   function WebVRBootstrapper(manifest, preLoad) {
     "use strict";
+
     function setup() {
       if (document.readyState === "complete") {
         if (V === 1) {
@@ -74,18 +75,20 @@
 
         var oldGetVRDisplays = navigator.getVRDisplays;
         navigator.getVRDisplays = function () {
-          return oldGetVRDisplays.call(navigator).then((displays) => {
-            if (displays.length === 0 || !(displays[0] instanceof StandardMonitorPolyfill)) {
-              displays.unshift(new StandardMonitorPolyfill());
-            }
-            return displays;
-          });
+          return oldGetVRDisplays.call(navigator)
+            .then((displays) => {
+              if (displays.length === 0 || !(displays[0] instanceof StandardMonitorPolyfill)) {
+                displays.unshift(new StandardMonitorPolyfill());
+              }
+              return displays;
+            });
         };
 
         document.removeEventListener("readystatechange", setup);
         preLoad(function (progress, done) {
           loadFiles(manifest, progress, function () {
-            navigator.getVRDisplays().then(done)
+            navigator.getVRDisplays()
+              .then(done)
           });
         });
         return true;

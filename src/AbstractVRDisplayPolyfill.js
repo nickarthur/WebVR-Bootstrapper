@@ -1,4 +1,4 @@
-﻿function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, displayID, displayName, requestPresent) {
+function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, displayID, displayName, requestPresent) {
   this.capabilities = {
     canPresent: canPresent,
     hasExternalDisplay: false,
@@ -79,6 +79,5 @@
     window.cancelAnimationFrame(handle);
   };
 
-  this.submitFrame = () => {
-  };
+  this.submitFrame = () => {};
 }

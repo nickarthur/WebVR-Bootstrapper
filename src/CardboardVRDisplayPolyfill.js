@@ -1,4 +1,4 @@
-﻿function CardboardVRDisplayPolyfill (){
+function CardboardVRDisplayPolyfill() {
   AbstractDeviceMotionDisplayPolyfill.call(this, "B4CEAE28-1A89-4314-872E-9C223DDABD02", "Device Motion API");
 
   this.getEyeParameters = function (side) {

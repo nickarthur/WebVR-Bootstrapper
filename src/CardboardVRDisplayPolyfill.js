@@ -6,7 +6,7 @@ function CardboardVRDisplayPolyfill() {
       var dEye = side === "left" ? -1 : 1;
 
       return {
-        renderWidth: Math.floor(screen.width * devicePixelRatio / 2),
+        renderWidth: Math.floor(0.5 * screen.width * devicePixelRatio),
         renderHeight: screen.height * devicePixelRatio,
         offset: new Float32Array([dEye * 0.03, 0, 0]),
         fieldOfView: {

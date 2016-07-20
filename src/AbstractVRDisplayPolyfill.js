@@ -22,7 +22,7 @@ function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, disp
 
   this.requestPresent = (layers) => {
     if (!this.capabilities.canPresent) {
-      return Promrise.reject(new Error("This device cannot be used as a presentation display. DisplayID: " + this.displayId + ". Name: " + this.displayName));
+      return Promise.reject(new Error("This device cannot be used as a presentation display. DisplayID: " + this.displayId + ". Name: " + this.displayName));
     }
     else if (!layers) {
       return Promise.reject(new Error("No layers provided to requestPresent"));

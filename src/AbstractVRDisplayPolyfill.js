@@ -1,4 +1,4 @@
-function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, displayID, displayName, requestPresent) {
+function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, displayId, displayName, requestPresent) {
   this.capabilities = {
     canPresent: canPresent,
     hasExternalDisplay: false,
@@ -6,7 +6,7 @@ function AbstractVRDisplayPolyfill(canPresent, hasOrientation, hasPosition, disp
     hasPosition: hasPosition
   };
 
-  this.displayID = displayID;
+  this.displayId = displayId;
   this.displayName = displayName;
   this.isConnected = true;
   this.isPresenting = false;

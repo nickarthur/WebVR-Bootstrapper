@@ -1,7 +1,7 @@
 {
   "name": "webvr-bootstrapper",
   "description": "A minimalist set of code to be able to get an image into a VR HMD as soon as possible",
-  "version": "1.0.5",
+  "version": "2.0.0",
   "main": "server.js",
   "author": "Sean T. McBeth <sean@seanmcbeth.com> (https://www.seanmcbeth.com)",
   "engines": {
@@ -32,7 +32,10 @@
     "WebGL",
     "WebVR"
   ],
+  "dependencies":{
+    "webvr-polyfill": "^0.9.15"
+  },
   "devDependencies": {
-    "notiontheory-basic-build": "^1.0.0"
+    "notiontheory-basic-build": "^2.0.0"
   }
 }

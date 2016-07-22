@@ -1,61 +1,142 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
-    <title></title>
-    <script src="WebVRBootstrapper.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+  <meta charset="utf-8" />
+  <title></title>
+  <script src="webvr-bootstrapper.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-        html, body, #instructions, canvas {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            margin: 0;
-            border: 0;
-            padding: 0;
-            color: #c0c0c0;
-        }
+    html, body, #instructions, canvas {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      margin: 0;
+      border: 0;
+      padding: 0;
+    }
 
-        #instructions {
-            padding: 2em;
-        }
+    body{
+      color: white;
+      background-color: black;
+    }
 
-        button {
-            padding: 1em;
-        }
-    </style>
+    #instructions {
+      padding: 2em;
+    }
+
+    button {
+      padding: 1em;
+    }
+  </style>
 </head>
 <body>
-    <canvas></canvas>
-    <div id="instructions">
-        <h1>Loading...</h1>
-        <div><progress style="width:100%"></progress></div>
-        <h2>Choose your display type:</h2>
-        <ul id="displays"></ul>
-    </div>
-    <script>
-        WebVRBootstrapper( [["../Primrose/PrimroseDependencies.min.js", 623878], ["../Primrose/Primrose.min.js", 219414]], function ( startDownload ) {
-            var pg = document.querySelector( "progress" ),
-                ul = document.querySelector( "ul" );
+  <canvas></canvas>
+  <div id="instructions">
+    <h1>Loading...</h1>
+    <div><progress style="width:100%"></progress></div>
+    <h2>Choose your display type:</h2>
+    <ul id="displays"></ul>
+    <table>
+      <thead>
+        <tr>
+          <th>key</th>
+          <th>value</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    window.addEventListener("vrenter", console.log.bind(console, "entered VR mode."));
+    window.addEventListener("vrexit", console.log.bind(console, "exited VR mode."));
+    WebVRBootstrapper( [["../Primrose/PrimroseDependencies.min.js", 623878], ["../Primrose/Primrose.min.js", 219414]], function ( startDownload ) {
+      var pg = document.querySelector( "progress" ),
+        ul = document.querySelector( "ul" ),
+        tb = document.querySelector( "tbody" ),
+        cv = document.querySelector( "canvas" );
 
-            startDownload( function ( n, m ) {
-                pg.max = m;
-                pg.value = n;
-            }, function ( displays ) {
-                console.log( WebVRBootstrapper.Version );
-                console.log( displays );
-                displays.forEach( function ( display, i ) {
-                    var li = document.createElement( "li" );
-                    li.appendChild( document.createTextNode( display.displayName ) );
-                    ul.appendChild( li );
-                } );
-            } );
+      function casc(tag, id, parent){
+        id = id.replace(/\./g, "$");
+        var elem = document.getElementById(id);
+        if(!elem){
+          elem = document.createElement(tag);
+          elem.id = id;
+          parent.appendChild(elem);
+        }
+        return elem;
+      }
+
+      function row(name){
+        var r = casc("tr", name, tb);
+        for(var i = 1; i < arguments.length; ++i){
+          arguments[i](name, r);
+        }
+      }
+
+      function cell(name, value){
+        return function(pre, r){
+          var c = casc("td", pre + name, r);
+          c.innerHTML = "";
+          c.appendChild(document.createTextNode(value));
+          return c;
+        };
+      }
+
+      function clear(){
+
+      }
+
+      function write(name, value){
+        return row(name,
+          cell("label", name),
+          cell("value", value));
+      }
+
+      function read(display){
+        function update(t){
+          display.requestAnimationFrame(update);
+          var p = display.getPose();
+          clear();
+          if(p.position){
+            write("position.x", p.position[0]);
+            write("position.y", p.position[1]);
+            write("position.z", p.position[2]);
+          }
+          if(p.orientation){
+            write("orientation.x", p.orientation[0]);
+            write("orientation.y", p.orientation[1]);
+            write("orientation.z", p.orientation[2]);
+            write("orientation.w", p.orientation[3]);
+          }
+          display.submitFrame(p);
+        }
+
+        return function(){
+          console.log("Connecting to display", display);
+          display.requestPresent({source: cv}).then(update);
+        }
+      }
+
+      startDownload( function ( n, m ) {
+        pg.max = m;
+        pg.value = n;
+      }, function ( displays ) {
+        displays.forEach( function ( display, i ) {
+          var li = document.createElement( "li" ),
+            btn = document.createElement("button");
+          btn.appendChild( document.createTextNode( display.displayName ) );
+          btn.addEventListener("click", read(display));
+          li.appendChild( btn );
+          ul.appendChild( li );
         } );
-    </script>
+      } );
+    } );
+  </script>
 </body>
 </html>

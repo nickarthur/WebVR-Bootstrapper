@@ -6657,9 +6657,11 @@ module.exports = WebVRPolyfill;
 
 },{"./base.js":4,"./cardboard-vr-display.js":7,"./display-wrappers.js":10,"./mouse-keyboard-vr-display.js":17,"es6-promise":1}]},{},[15]);
 
+"use strict";
+
 window.isChrome = !!window.chrome && !window.opera && navigator.userAgent.indexOf(' OPR/') === -1;
 
-var AsyncLockRequest = (function () {
+var AsyncLockRequest = function () {
   "use strict";
 
   function findProperty(elem, arr) {
@@ -6672,41 +6674,49 @@ var AsyncLockRequest = (function () {
 
   return function (name, elementOpts, changeEventOpts, errorEventOpts, requestMethodOpts, exitMethodOpts, testExtraParam) {
     var elementName = findProperty(document, elementOpts),
-      changeEventName = findProperty(document, changeEventOpts),
-      errorEventName = findProperty(document, errorEventOpts),
-      requestMethodName = findProperty(document.documentElement, requestMethodOpts),
-      exitMethodName = findProperty(document, exitMethodOpts),
-      changeTimeout = null;
+        changeEventName = findProperty(document, changeEventOpts),
+        errorEventName = findProperty(document, errorEventOpts),
+        requestMethodName = findProperty(document.documentElement, requestMethodOpts),
+        exitMethodName = findProperty(document, exitMethodOpts),
+        changeTimeout = null;
 
     changeEventName = changeEventName && changeEventName.substring(2);
     errorEventName = errorEventName && errorEventName.substring(2);
 
     var ns = {
-      addChangeListener: (thunk, bubbles) => document.addEventListener(changeEventName, thunk, bubbles),
-      removeChangeListener: (thunk) => document.removeEventListener(changeEventName, thunk),
-      addErrorListener: (thunk, bubbles) => document.addEventListener(errorEventName, thunk, bubbles),
-      removeErrorListener: (thunk) => document.removeEventListener(errorEventName, thunk),
-      withChange: (act) => {
-        return new Promise((resolve, reject) => {
-          var onSuccess = () => {
-              setTimeout(tearDown);
-              resolve(ns.element);
-            },
-            onError = (evt) => {
-              setTimeout(tearDown);
-              reject(evt);
-            },
-            stop = () => {
-              if (changeTimeout) {
-                clearTimeout(changeTimeout);
-                changeTimeout = null;
-              }
-            },
-            tearDown = () => {
-              stop();
-              ns.removeChangeListener(onSuccess);
-              ns.removeErrorListener(onError);
-            };
+      addChangeListener: function addChangeListener(thunk, bubbles) {
+        return document.addEventListener(changeEventName, thunk, bubbles);
+      },
+      removeChangeListener: function removeChangeListener(thunk) {
+        return document.removeEventListener(changeEventName, thunk);
+      },
+      addErrorListener: function addErrorListener(thunk, bubbles) {
+        return document.addEventListener(errorEventName, thunk, bubbles);
+      },
+      removeErrorListener: function removeErrorListener(thunk) {
+        return document.removeEventListener(errorEventName, thunk);
+      },
+      withChange: function withChange(act) {
+        return new Promise(function (resolve, reject) {
+          var onSuccess = function onSuccess() {
+            setTimeout(tearDown);
+            resolve(ns.element);
+          },
+              onError = function onError(evt) {
+            setTimeout(tearDown);
+            reject(evt);
+          },
+              stop = function stop() {
+            if (changeTimeout) {
+              clearTimeout(changeTimeout);
+              changeTimeout = null;
+            }
+          },
+              tearDown = function tearDown() {
+            stop();
+            ns.removeChangeListener(onSuccess);
+            ns.removeErrorListener(onError);
+          };
 
           ns.addChangeListener(onSuccess, false);
           ns.addErrorListener(onError, false);
@@ -6715,49 +6725,42 @@ var AsyncLockRequest = (function () {
             // we've already gotten lock, so don't wait for it.
             tearDown();
             resolve(ns.element);
-          }
-          else {
+          } else {
             // Timeout waiting on the lock to happen, for systems like iOS that
             // don't properly support it, even though they say they do.
             stop();
-            changeTimeout = setTimeout(() => {
+            changeTimeout = setTimeout(function () {
               tearDown();
               reject(name + " state did not change in allotted time");
             }, 1000);
           }
         });
       },
-      request: (elem, extraParam) => {
+      request: function request(elem, extraParam) {
         if (testExtraParam) {
           extraParam = testExtraParam(extraParam);
         }
-        return ns.withChange(() => {
+        return ns.withChange(function () {
           if (!requestMethodName) {
             throw new Error("No " + name + " API support.");
-          }
-          else if (ns.isActive) {
+          } else if (ns.isActive) {
             return true;
-          }
-          else if (extraParam) {
+          } else if (extraParam) {
             elem[requestMethodName](extraParam);
-          }
-          else if (isChrome) {
+          } else if (isChrome) {
             elem[requestMethodName](window.Element.ALLOW_KEYBOARD_INPUT);
-          }
-          else {
+          } else {
             elem[requestMethodName]();
           }
         });
       },
-      exit: () => {
-        return ns.withChange(() => {
+      exit: function exit() {
+        return ns.withChange(function () {
           if (!exitMethodName) {
             throw new Error("No Fullscreen API support.");
-          }
-          else if (!ns.isActive) {
+          } else if (!ns.isActive) {
             return true;
-          }
-          else {
+          } else {
             document[exitMethodName]();
           }
         });
@@ -6766,19 +6769,28 @@ var AsyncLockRequest = (function () {
 
     Object.defineProperties(ns, {
       element: {
-        get: () => document[elementName]
+        get: function get() {
+          return document[elementName];
+        }
       },
       isActive: {
-        get: () => !!document[elementName]
+        get: function get() {
+          return !!document[elementName];
+        }
       }
     });
 
     return ns;
-  }
-})();
-var FullScreen = AsyncLockRequest("Fullscreen", ["fullscreenElement", "mozFullScreenElement", "webkitFullscreenElement", "msFullscreenElement"], ["onfullscreenchange", "onmozfullscreenchange", "onwebkitfullscreenchange", "onmsfullscreenchange"], ["onfullscreenerror", "onmozfullscreenerror", "onwebkitfullscreenerror", "onmsfullscreenerror"], ["requestFullscreen", "mozRequestFullScreen", "webkitRequestFullscreen", "webkitRequestFullScreen", "msRequestFullscreen"], ["exitFullscreen", "mozExitFullScreen", "webkitExitFullscreen", "webkitExitFullScreen", "msExitFullscreen"],
-  (arg) => arg || (isChrome && window.Element.ALLOW_KEYBOARD_INPUT) || undefined);
-var loadFiles = (function () {
+  };
+}();
+"use strict";
+
+var FullScreen = AsyncLockRequest("Fullscreen", ["fullscreenElement", "mozFullScreenElement", "webkitFullscreenElement", "msFullscreenElement"], ["onfullscreenchange", "onmozfullscreenchange", "onwebkitfullscreenchange", "onmsfullscreenchange"], ["onfullscreenerror", "onmozfullscreenerror", "onwebkitfullscreenerror", "onmsfullscreenerror"], ["requestFullscreen", "mozRequestFullScreen", "webkitRequestFullscreen", "webkitRequestFullScreen", "msRequestFullscreen"], ["exitFullscreen", "mozExitFullScreen", "webkitExitFullscreen", "webkitExitFullScreen", "msExitFullscreen"], function (arg) {
+  return arg || isChrome && window.Element.ALLOW_KEYBOARD_INPUT || undefined;
+});
+"use strict";
+
+var loadFiles = function () {
   "use strict";
 
   function get(url, done, progress) {
@@ -6786,9 +6798,8 @@ var loadFiles = (function () {
     req.onload = function () {
       if (req.status < 400) {
         done(req.response);
-      }
-      else {
-        done(new Error(req.status))
+      } else {
+        done(new Error(req.status));
       }
     };
 
@@ -6800,15 +6811,14 @@ var loadFiles = (function () {
   function _loadFiles(files, done, progress, index, total, loaded) {
     if (index < files.length) {
       var file = files[index][0],
-        size = files[index][1],
-        shortExt = file.match(/\.\w+$/)[0] || "none",
-        longExt = file.match(/(\.\w+)+$/)[0] || "none",
-        lastLoaded = loaded;
-      get(file, (content) => {
+          size = files[index][1],
+          shortExt = file.match(/\.\w+$/)[0] || "none",
+          longExt = file.match(/(\.\w+)+$/)[0] || "none",
+          lastLoaded = loaded;
+      get(file, function (content) {
         if (content instanceof Error) {
           console.error("Failed to load " + file + ": " + content.message);
-        }
-        else if (shortExt === ".js" && longExt !== ".typeface.js") {
+        } else if (shortExt === ".js" && longExt !== ".typeface.js") {
           var s = document.createElement("script");
           s.type = "text/javascript";
           s.src = file;
@@ -6818,14 +6828,13 @@ var loadFiles = (function () {
         }
 
         _loadFiles(files, done, progress, index + 1, total, loaded);
-      }, (evt) => progress(loaded = lastLoaded + evt.loaded, total));
-    }
-    else {
+      }, function (evt) {
+        return progress(loaded = lastLoaded + evt.loaded, total);
+      });
+    } else {
       done();
     }
   }
-
-
 
   /* syntax:
   loadFiles([
@@ -6853,25 +6862,26 @@ var loadFiles = (function () {
     }
 
     if (manifestSpec instanceof String || typeof manifestSpec === "string") {
-      get(manifestSpec, (manifestText) => {
+      get(manifestSpec, function (manifestText) {
         readManifest(JSON.parse(manifestText));
       });
-    }
-    else if (manifestSpec instanceof Array) {
+    } else if (manifestSpec instanceof Array) {
       readManifest(manifestSpec);
     }
-  }
-})();
-var makeStandardMonitor = (function(){
+  };
+}();
+"use strict";
+
+var makeStandardMonitor = function () {
   "use strict";
 
   function defaultFOV(side) {
-    if(side === "left"){
+    if (side === "left") {
       var width = this.DOMElement && this.DOMElement.offsetWidth || screen.width,
-        height = this.DOMElement && this.DOMElement.offsetHeight || screen.height,
-        aspect = width / height,
-        vFOV = 25,
-        hFOV = vFOV * aspect;
+          height = this.DOMElement && this.DOMElement.offsetHeight || screen.height,
+          aspect = width / height,
+          vFOV = 25,
+          hFOV = vFOV * aspect;
       return {
         renderWidth: width * devicePixelRatio,
         renderHeight: height * devicePixelRatio,
@@ -6886,7 +6896,7 @@ var makeStandardMonitor = (function(){
     }
   }
 
-  function defaultPose () {
+  function defaultPose() {
     return {
       position: [0, 0, 0],
       orientation: [0, 0, 0, 1],
@@ -6897,29 +6907,21 @@ var makeStandardMonitor = (function(){
     };
   }
 
-  function goFullScreen(layers){
-    var fireDisplayPresentChange = () => window.dispatchEvent(new Event("vrdisplaypresentchange")),
-      onAdd = (evt) => {
-        window.removeEventListener("vrdisplaypresentchange", onAdd);
-        window.addEventListener("vrdisplaypresentchange", onRemove);
-        this.isPresenting = true;
-        PointerLock.request(layers[0].source)
-          .then(() => window.dispatchEvent(new Event("vrenter")));
-      },
-      onRemove = (evt) => {
-        window.removeEventListener("vrdisplaypresentchange", onRemove);
-        FullScreen.removeChangeListener(fireDisplayPresentChange);
-        this.isPresenting = false;
-        PointerLock.exit()
-          .then(() => window.dispatchEvent(new Event("vrexit")));
-      };
+  function goFullScreen(layers) {
+    var _this = this;
 
-    window.addEventListener("vrdisplaypresentchange", onAdd);
+    var fireDisplayPresentChange = function fireDisplayPresentChange(evt) {
+      _this.isPresenting = FullScreen.isActive;
+      if (!_this.isPresenting) {
+        FullScreen.removeChangeListener(fireDisplayPresentChange);
+      }
+      window.dispatchEvent(new Event("vrdisplaypresentchange"));
+    };
     FullScreen.addChangeListener(fireDisplayPresentChange);
     return FullScreen.request(layers[0].source);
   }
 
-  function makeStandardMonitor(display){
+  function makeStandardMonitor(display) {
     display.displayName = "Standard Monitor";
     display.getEyeParameters = defaultFOV;
     display.getImmediatePose = defaultPose;
@@ -6929,96 +6931,119 @@ var makeStandardMonitor = (function(){
   }
 
   return makeStandardMonitor;
-})();
+}();
+"use strict";
+
 var PointerLock = AsyncLockRequest("Pointer Lock", ["pointerLockElement", "mozPointerLockElement", "webkitPointerLockElement"], ["onpointerlockchange", "onmozpointerlockchange", "onwebkitpointerlockchange"], ["onpointerlockerror", "onmozpointerlockerror", "onwebkitpointerlockerror"], ["requestPointerLock", "mozRequestPointerLock", "webkitRequestPointerLock", "webkitRequestPointerLock"], ["exitPointerLock", "mozExitPointerLock", "webkitExitPointerLock", "webkitExitPointerLock"]);
-class ViewCameraTransform {
-  static makeTransform(eye, near, far) {
-    return {
-      translation: new THREE.Vector3()
-        .fromArray(eye.offset),
-      projection: ViewCameraTransform.fieldOfViewToProjectionMatrix(eye.fieldOfView, near, far),
-      viewport: {
-        left: 0,
-        top: 0,
-        width: eye.renderWidth,
-        height: eye.renderHeight
-      }
-    };
-  }
+"use strict";
 
-  static fieldOfViewToProjectionMatrix(fov, zNear, zFar) {
-    var upTan = Math.tan(fov.upDegrees * Math.PI / 180.0),
-      downTan = Math.tan(fov.downDegrees * Math.PI / 180.0),
-      leftTan = Math.tan(fov.leftDegrees * Math.PI / 180.0),
-      rightTan = Math.tan(fov.rightDegrees * Math.PI / 180.0),
-      xScale = 2.0 / (leftTan + rightTan),
-      yScale = 2.0 / (upTan + downTan),
-      matrix = new THREE.Matrix4();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-    matrix.elements[0] = xScale;
-    matrix.elements[1] = 0.0;
-    matrix.elements[2] = 0.0;
-    matrix.elements[3] = 0.0;
-    matrix.elements[4] = 0.0;
-    matrix.elements[5] = yScale;
-    matrix.elements[6] = 0.0;
-    matrix.elements[7] = 0.0;
-    matrix.elements[8] = -((leftTan - rightTan) * xScale * 0.5);
-    matrix.elements[9] = ((upTan - downTan) * yScale * 0.5);
-    matrix.elements[10] = -(zNear + zFar) / (zFar - zNear);
-    matrix.elements[11] = -1.0;
-    matrix.elements[12] = 0.0;
-    matrix.elements[13] = 0.0;
-    matrix.elements[14] = -(2.0 * zFar * zNear) / (zFar - zNear);
-    matrix.elements[15] = 0.0;
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-    return matrix;
-  }
+var ViewCameraTransform = function () {
+  _createClass(ViewCameraTransform, null, [{
+    key: "makeTransform",
+    value: function makeTransform(eye, near, far) {
+      return {
+        translation: new THREE.Vector3().fromArray(eye.offset),
+        projection: ViewCameraTransform.fieldOfViewToProjectionMatrix(eye.fieldOfView, near, far),
+        viewport: {
+          left: 0,
+          top: 0,
+          width: eye.renderWidth,
+          height: eye.renderHeight
+        }
+      };
+    }
+  }, {
+    key: "fieldOfViewToProjectionMatrix",
+    value: function fieldOfViewToProjectionMatrix(fov, zNear, zFar) {
+      var upTan = Math.tan(fov.upDegrees * Math.PI / 180.0),
+          downTan = Math.tan(fov.downDegrees * Math.PI / 180.0),
+          leftTan = Math.tan(fov.leftDegrees * Math.PI / 180.0),
+          rightTan = Math.tan(fov.rightDegrees * Math.PI / 180.0),
+          xScale = 2.0 / (leftTan + rightTan),
+          yScale = 2.0 / (upTan + downTan),
+          matrix = new THREE.Matrix4();
 
-  constructor(display) {
+      matrix.elements[0] = xScale;
+      matrix.elements[1] = 0.0;
+      matrix.elements[2] = 0.0;
+      matrix.elements[3] = 0.0;
+      matrix.elements[4] = 0.0;
+      matrix.elements[5] = yScale;
+      matrix.elements[6] = 0.0;
+      matrix.elements[7] = 0.0;
+      matrix.elements[8] = -((leftTan - rightTan) * xScale * 0.5);
+      matrix.elements[9] = (upTan - downTan) * yScale * 0.5;
+      matrix.elements[10] = -(zNear + zFar) / (zFar - zNear);
+      matrix.elements[11] = -1.0;
+      matrix.elements[12] = 0.0;
+      matrix.elements[13] = 0.0;
+      matrix.elements[14] = -(2.0 * zFar * zNear) / (zFar - zNear);
+      matrix.elements[15] = 0.0;
+
+      return matrix;
+    }
+  }]);
+
+  function ViewCameraTransform(display) {
+    _classCallCheck(this, ViewCameraTransform);
+
     this._display = display;
   }
 
-  getTransforms(near, far) {
-    var l = this._display.getEyeParameters("left"),
-      r = this._display.getEyeParameters("right"),
-      params = [ViewCameraTransform.makeTransform(l, near, far)];
-    if (r) {
-      params.push(ViewCameraTransform.makeTransform(r, near, far));
+  _createClass(ViewCameraTransform, [{
+    key: "getTransforms",
+    value: function getTransforms(near, far) {
+      var l = this._display.getEyeParameters("left"),
+          r = this._display.getEyeParameters("right"),
+          params = [ViewCameraTransform.makeTransform(l, near, far)];
+      if (r) {
+        params.push(ViewCameraTransform.makeTransform(r, near, far));
+      }
+      for (var i = 1; i < params.length; ++i) {
+        params[i].viewport.left = params[i - 1].viewport.left + params[i - 1].viewport.width;
+      }
+      return params;
     }
-    for (var i = 1; i < params.length; ++i) {
-      params[i].viewport.left = params[i - 1].viewport.left + params[i - 1].viewport.width;
-    }
-    return params;
-  }
-}
-const WebVRBootstrapper = (function () {
+  }]);
+
+  return ViewCameraTransform;
+}();
+"use strict";
+
+var WebVRBootstrapper = function () {
   "use strict";
 
   WebVRConfig.BUFFER_SCALE = 1;
 
   var oldGetVRDisplays = navigator.getVRDisplays;
-  navigator.getVRDisplays = () => oldGetVRDisplays.call(navigator)
-    .then((displays) =>{
-      for(var i = 0; i < displays.length; ++i){
+  navigator.getVRDisplays = function () {
+    return oldGetVRDisplays.call(navigator).then(function (displays) {
+      for (var i = 0; i < displays.length; ++i) {
         var display = displays[i];
-        if(display.displayName === "Mouse and Keyboard VRDisplay (webvr-polyfill)") {
+        if (display.displayName === "Mouse and Keyboard VRDisplay (webvr-polyfill)") {
           displays[i] = makeStandardMonitor(displays[i]);
         }
       }
       return displays;
     });
+  };
 
-  function WebVRBootstrapper(manifest, preLoad, root = "") {
+  function WebVRBootstrapper(manifest, preLoad) {
+    var root = arguments.length <= 2 || arguments[2] === undefined ? "" : arguments[2];
+
     function setup() {
       var ready = document.readyState === "complete";
       if (ready) {
         document.removeEventListener("readystatechange", setup);
-        preLoad((progress, done) => loadFiles(
-          manifest,
-          progress,
-          () => navigator.getVRDisplays()
-          .then(done)));
+        preLoad(function (progress, done) {
+          return loadFiles(manifest, progress, function () {
+            return navigator.getVRDisplays().then(done);
+          });
+        });
       }
       return ready;
     }
@@ -7029,4 +7054,4 @@ const WebVRBootstrapper = (function () {
   }
 
   return WebVRBootstrapper;
-})();
+}();

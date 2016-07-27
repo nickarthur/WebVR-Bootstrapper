@@ -1,8 +1,8 @@
-var makeStandardMonitor = (function(){
+var makeStandardMonitor = (function () {
   "use strict";
 
   function defaultFOV(side) {
-    if(side === "left"){
+    if (side === "left") {
       var width = this.DOMElement && this.DOMElement.offsetWidth || screen.width,
         height = this.DOMElement && this.DOMElement.offsetHeight || screen.height,
         aspect = width / height,
@@ -22,7 +22,7 @@ var makeStandardMonitor = (function(){
     }
   }
 
-  function defaultPose () {
+  function defaultPose() {
     return {
       position: [0, 0, 0],
       orientation: [0, 0, 0, 1],
@@ -33,29 +33,19 @@ var makeStandardMonitor = (function(){
     };
   }
 
-  function goFullScreen(layers){
-    var fireDisplayPresentChange = () => window.dispatchEvent(new Event("vrdisplaypresentchange")),
-      onAdd = (evt) => {
-        window.removeEventListener("vrdisplaypresentchange", onAdd);
-        window.addEventListener("vrdisplaypresentchange", onRemove);
-        this.isPresenting = true;
-        PointerLock.request(layers[0].source)
-          .then(() => window.dispatchEvent(new Event("vrenter")));
-      },
-      onRemove = (evt) => {
-        window.removeEventListener("vrdisplaypresentchange", onRemove);
+  function goFullScreen(layers) {
+    const fireDisplayPresentChange = (evt) => {
+      this.isPresenting = FullScreen.isActive;
+      if (!this.isPresenting) {
         FullScreen.removeChangeListener(fireDisplayPresentChange);
-        this.isPresenting = false;
-        PointerLock.exit()
-          .then(() => window.dispatchEvent(new Event("vrexit")));
-      };
-
-    window.addEventListener("vrdisplaypresentchange", onAdd);
+      }
+      window.dispatchEvent(new Event("vrdisplaypresentchange"));
+    };
     FullScreen.addChangeListener(fireDisplayPresentChange);
     return FullScreen.request(layers[0].source);
   }
 
-  function makeStandardMonitor(display){
+  function makeStandardMonitor(display) {
     display.displayName = "Standard Monitor";
     display.getEyeParameters = defaultFOV;
     display.getImmediatePose = defaultPose;
